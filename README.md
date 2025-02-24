@@ -1,9 +1,3 @@
-# Multiple_Group_Statistics
-R Functions for Multiple Group Statistics
-
-
----
-
 # R语言多分组统计检验教程
 
 ---
