@@ -35,24 +35,44 @@ auto_stat_test <- function(data, test_assumptions_res,
                            kw_post_hoc = "dunn") {
   # if test_assumptions_res pass
   pass <- test_assumptions_res$pass
+  # group number
+  group_numb <- length(unique(data[[group_col]]))
+  
   # Check assumptions and perform appropriate test
-  if (pass) {
-    # If normality and homogeneity of variances are met, perform ANOVA
-    message("Normality and homogeneity of variances assumptions are met.\nPerforming parametric test: ANOVA.")
-    res.list <- perform_anova_test(data,  response_col, group_col, factors = factors,
-                                   interaction = interaction, post_hoc_method = aov_post_hoc)
+  if (group_numb > 2) {
+    # multiple group
+    if (pass) {
+      # If normality and homogeneity of variances are met, perform ANOVA
+      message("Normality and homogeneity of variances assumptions are met.")
+      message(glue::glue("Number of group is {group_numb}.\nPerforming parametric test: ANOVA."))
+      res.list <- perform_anova_test(data,  response_col, group_col, factors = factors,
+                                     interaction = interaction, post_hoc_method = aov_post_hoc)
+    } else {
+      # If assumptions are not met, perform non-parametric test (Wilcoxon rank-sum test)
+      message("Normality or homogeneity of variances assumptions are not met.\nPerforming non-parametric test: Kruskal-Wallis")
+      # Perform Non-parameter test
+      res.list <- perform_kw_test(data, response_col, group_col, kw_post_hoc)
+    }
+    
   } else {
-    # If assumptions are not met, perform non-parametric test (Wilcoxon rank-sum test)
-    message("Normality or homogeneity of variances assumptions are not met.\nPerforming non-parametric test: Kruskal-Wallis")
-    # Perform Non-parameter test
-    res.list <- perform_kw_test(data, response_col, group_col, kw_post_hoc)
+    # two group 
+    if (pass) {
+      message("Normality and homogeneity of variances assumptions are met.")
+      message(glue::glue("Number of group is {group_numb}.\nPerforming parametric test: Student's t-test."))
+      res.list <- perfrom_stat_for_two_group(data,  response_col, group_col, method = "t.test")
+    } else {
+      message("Normality and homogeneity of variances assumptions are met.")
+      message(glue::glue("Number of group is {group_numb}.\nPerforming parametric test: Wilcox.test."))
+      res.list <- perfrom_stat_for_two_group(data,  response_col, group_col, method = "wilcox.test")
+    }
+    
   }
+  
   return(res.list)
 }
 
 # collect data --------------------------------------------------------------------
 
-# Main function
 stat_res_collect <- function(data, nor, stat, task_name) {
   # Step 1: Collect normality and homogeneity of variance test results
   df1 <- nor$test.results
@@ -154,6 +174,16 @@ stat_res_collect <- function(data, nor, stat, task_name) {
   return(res)
 }
 
+
+stat_res_collect_two_group <- function(data, nor, stat, task_name){
+  # merge stat res
+  colnames(stat$test.results) <- colnames(nor$test.results)
+  res_df <- rbind(nor$test.results, stat$test.results)
+  
+  res.list <- list("data" = data, "stat_test" = res_df)
+  names(res.list)[1] <- task_name
+  return(res.list)
+}
 
 
 
@@ -299,8 +329,48 @@ perform_anova_test <- function(data,
   return(res.list)
 }
 
+# two group
+perfrom_stat_for_two_group <- function(data, response_col, group_col, method) {
+  # extract group names
+  group_names <- unique(data[[group_col]])
+  group_A_loc <- data[[group_col]] == group_names[1]
+  # extract values
+  value_A <- data[[response_col]][group_A_loc]
+  value_B <- data[[response_col]][!group_A_loc]
+  
+  if (method == "t.test") {
+    t_res <- t.test(value_A, value_B)
+    p_value <- t_res$p.value
+    
+  } else if (method == "wilcox.test") {
+    wilcox_res <- wilcox.test(value_A, value_B)
+    p_value <- wilcox_res$p.value
+    
+  } else {
+    message("Parameter 'method' should be 't.test' or 'wilcox.test'.")
+  }
+  
+  adjusted_p_value <- p.adjust(p_value, method = "holm")
+  
+  # tidy data
+  step_use <- ifelse(method == "t.test", "Parametric tests", "Nonparametric tests")
+  test_df <- data.frame(
+    "step" = step_use,
+    "method" = method,
+    "comparison" = paste(group_names[2], group_names[1], sep = "-"),
+    "p.value" = adjusted_p_value
+  )
+  test_df$sig <- sapply(test_df$p.value, p_to_stars)
+  
+  # collect
+  res.list <- list("test.results" = test_df,
+                   "test_method" = method)
+  
+  return(res.list)
+}
 
-# 定义函数
+
+# KW
 perform_kw_test <- function(data, response_col, group_col, post_hoc_method = "dunn") {
   # Check if the input column names exist in the data
   if (!(response_col %in% colnames(data)) || !(group_col %in% colnames(data))) {
@@ -479,121 +549,5 @@ p_to_stars <- function(p) {
     return("")
   }
 }
-
-
-# orignal codes -----------------------------------------------------------
-
-# Stat results collect
-# stat_res_collect <- function(data, nor, stat, task_name){
-#   # step1
-#   st.p <- nor[[1]]$p.value  # Shapiro-Wilk test p-value
-#   bt.p <- nor[[2]]$p.value  # Bartlett test p-value
-#   
-#   df1 <- data.frame(
-#     "methods" = c(nor[[1]]$method, nor[[2]]$method),
-#     "results" = c(round(st.p,4), round(bt.p,4))
-#   )
-#   
-#   # step2
-#   # 如果TRUE，则同时符合正态性与方差齐性
-#   nor_pass <- st.p >= 0.05 & bt.p >= 0.05
-#   
-#   # post hoc
-#   post_hoc_method <- names(stat)[2]
-#   
-#   
-#   # 符合正态性和方差齐性
-#   if (nor_pass) {
-#     stat_method <- "ANOVA"
-#     formula_use <- stat[[1]]$formula[1]
-#     Statistical_calculation_res <- stat[[1]]$`Pr(>F)`[1]
-#     
-#     if (Statistical_calculation_res < 0.05) {
-#       # ANOVA有统计学意义，做事后检验
-#       post_hoc_method <- "Tukey HSD"
-#       post_hoc_res <- stat[[2]]$group
-#       
-#       df2 <- data.frame(
-#         "methods" = c(stat_method, "Formula", post_hoc_method),
-#         "results" = c(Statistical_calculation_res, formula_use, "see post_hoc table")
-#       )
-#       
-#     } else {
-#       # ANOVA无统计学意义，不做事后检验
-#       df2 <- data.frame(
-#         "methods" = c(stat_method, "Formula"),
-#         "results" = c(Statistical_calculation_res, formula_use)
-#       )
-#     }
-#     
-#     # 合并
-#     df_merge <- rbind(df1, df2) %>% 
-#       mutate(task = task_name) %>% 
-#       mutate(step = 1:nrow(.)) %>% 
-#       select(task, step, everything())
-#     
-#     # 统计学转换成星号
-#     df_merge$sig <- sapply(df_merge$results, p_to_stars)
-#     
-#     
-#     # 不符合正态性或(和)方差齐性
-#   } else {
-#     stat_method <- "Kruskal-Wallis"
-#     kw_res <- stat[[stat_method]]
-#     
-#     df2 <- data.frame(
-#       "methods" = c(stat_method, "Formula"),
-#       "results" = c(kw_res$p.value, as.character(kw_res$formula))
-#     )
-#     
-#     df_merge <- rbind(df1, df2) %>% 
-#       mutate(task = task_name) %>% 
-#       mutate(step = 1:nrow(.)) %>% 
-#       select(task, step, everything())
-#     
-#     # 统计学转换成星号
-#     df_merge$sig <- sapply(df_merge$results, p_to_stars)
-#     
-#     Statistical_calculation_res <- stat[[1]]$p.value
-#     
-#   }
-#   
-#   
-#   # return
-#   if (nor_pass == TRUE & Statistical_calculation_res < 0.05) {
-#     # ANOVA $ Tukey (post_hoc)
-#     res <- list("data" = data,
-#                 "test_res" = df_merge, 
-#                 "post_hoc (TukeyHSD)" = post_hoc_res)
-#     
-#   } else if (nor_pass == TRUE & Statistical_calculation_res > 0.05){
-#     # ANOVA only
-#     res <- list("data" = data,
-#                 "test_res" = df_merge)
-#     
-#   } else if (nor_pass == FALSE & Statistical_calculation_res < 0.05) {
-#     # kw + dunn/wilcox (post_hoc)
-#     if (post_hoc_method=="pariwise Wilcoxon") {
-#       post_hoc = stat$"pariwise Wilcoxon"
-#     }else if (post_hoc_method=="Dunn's") {
-#       post_hoc = stat$"Dunn's"$res
-#     }else{
-#       "'pariwise Wilcoxon' or 'Dunn's' not found. "
-#     }
-#     res <- list("data" = data,
-#                 "Nor_res" = df_merge,
-#                 "post_hoc" = post_hoc)
-#     
-#   } else {
-#     # kw only
-#     res <- list("data" = data,
-#                 "Nor_res" = df_merge)
-#   }
-#   
-#   names(res)[1] <- task_name
-#   return(res)
-#   
-# }
-
 
 
