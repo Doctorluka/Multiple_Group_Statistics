@@ -10,15 +10,8 @@
 
 ## 参考数据和函数
 
-示例数据：
-
-
-
-函数：
-
-
-
-
+示例数据： `test_data.xlsx`
+函数：`stat_test.R`, `stat_plot.R`
 
 ---
 
