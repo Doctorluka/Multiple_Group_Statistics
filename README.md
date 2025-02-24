@@ -52,9 +52,3 @@ R Functions for Multiple Group Statistics
 
 ---
 
-## 脚注
-[^1]: 假设检验通过时执行参数检验（ANOVA），反之执行非参数检验（Kruskal-Wallis）[stat_test_readme.md]。
-[^2]: 标准化结果表整合正态性、方差齐性及事后检验结果，包含显著性标记与校正方法信息[stat_test_readme.md]。
-[^3]: 使用Shapiro-Wilk和Levene/Bartlett检验联合验证正态性与方差齐性假设[stat_test_readme.md]。
-[^4]: Levene检验通过`car::leveneTest()`实现，公式动态生成`响应变量 ~ 分组变量`[stat_test_readme.md]。
-[^6]: Kruskal-Wallis检验后的成对比较可选Dunn或Wilcoxon方法，输出校正后\( p \)-值[stat_test_readme.md]。
