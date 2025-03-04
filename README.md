@@ -1,15 +1,18 @@
-# R语言实现两组或多组统计检验教程
 
 
 ## 前言
 
-尽管在R中，类似`ggpubr`等R包已经提供了便捷的统计学可视化的函数，但是在实际应用过程中，却不是那么简单。尤其是这些R包通常只提供简单的两组之间对比，或提供全局检验。但这些便捷的功能仅能快速简单地查看，既无法判断统计方法选择的合理性，也无法便捷的形成可供发表的统计学结果整理。
+尽管R语言中诸如`ggpubr`等包为统计学可视化提供了便捷的函数，但在实际应用中，问题往往并不那么简单。这些包通常仅支持简单的两组对比或全局检验，虽然能够快速生成初步结果，却无法帮助用户判断统计方法选择的合理性，也难以直接生成符合发表要求的统计学结果。
 
-对于实际的文章要求，尤其是高质量的SCI杂志，通常会有统计学编辑或审稿人对文章每一个数据的统计方法和结果进行严格的审查，**这些统计学编辑具有一票否决权**，无论你的学术审稿人的意见多么nice，一旦你的统计学方法有问题，且无法满足他的修改要求，你将会迎来无情的拒稿。
+在高质量的SCI期刊中，统计学编辑或审稿人通常会对文章中每一个数据的统计方法和结果进行严格审查。**统计学编辑拥有一票否决权**，即使学术审稿人对你的研究给予了高度评价，一旦统计方法存在问题且无法满足修改要求，你的文章仍可能面临无情的拒稿。
 
-为了解决这个问题，经过多方的探索和汇总，并经过了专业的统计学老师指导，我整理了一份多分组统计检验的代码，以供读者参考。为了增加泛用性，还接入了两组之间统计的流程。由于本人非统计学出身，且因课题需求无法拓展太多，提供的代码难免存在使用上的局限性。本文主要的目的是抛砖引玉，希望读者**根据自己的实际需求来形成合适的工作流程**。
+为解决这一问题，我在多方探索和汇总的基础上，结合专业统计学老师的指导，整理了一份适用于多分组统计检验的代码，供读者参考。当然，为了提高泛用性，我也在流程中补充了两组间分析的内容。由于我并非统计学专业出身，且受限于课题需求，提供的代码可能存在一定的局限性。本文的主要目的是抛砖引玉，**希望读者能够根据自身实际需求，形成适合的工作流程**。
 
-为了降低阅读困难，我把统计函数打包为一个脚本，同时还提供了自身使用的、简单的绘图脚本。主要以整理工作流程为目的，从头梳理多分组统计检验的工作流程和结果解读。如果读者对封装的流程感兴趣，可以自行拆解和改编内容。
+事实上，最重要的仍然是对统计学知识的正确认知，才能帮助你做出正确的选择，任何既定的流程都是辅助。对于统计学方法选择，我认为这一篇推文已经足够解释清楚：
+```
+https://mp.weixin.qq.com/s/IF4F0W2ghWRq4ILVP3T49A
+```
+为降低阅读难度，我将统计函数封装为一个脚本，并附上了我自用的简单绘图脚本。本文以梳理多分组统计检验的工作流程和结果解读为核心，旨在帮助读者从头构建完整的分析流程。如果读者对封装的流程感兴趣，可以自行拆解和改编内容。
 
 ## 参考数据和函数
 
@@ -18,19 +21,18 @@
 
 ---
 
-事实上，最重要的仍然是对统计学知识的正确认知，才能帮助你做出正确的选择，任何既定的流程都是辅助。
-
-对于统计学方法选择，我认为这一篇推文已经足够解释清楚：
-
-https://mp.weixin.qq.com/s/IF4F0W2ghWRq4ILVP3T49A
-
 ## 工作流程图：
 
-![](https://secure2.wostatic.cn/static/7mk7Adtt9cWnSeTGXTagpT/image.png?auth_key=1740405837-cLtLWZn3NgUEEs77h5j9Gk-0-a2eac34a2ae5c3ccb909f2b4512fb5d3)
+![](https://secure2.wostatic.cn/static/7mk7Adtt9cWnSeTGXTagpT/image.png?auth_key=1741054910-zVxvocq7ELY6HzA8PGLvQ-0-b028083e850aa41bca8e29d22d4e446d)
 
-## 主要函数包含关系
+## 主函数和子函数简介
 
-![](https://secure2.wostatic.cn/static/ttvsekmyNSdUVgrLvE4HXP/image.png?auth_key=1740405837-sHLGaRX94PP8FNSZowzsLW-0-d1f3fbe87fcd486ab4f8fc8ee21f5df9)
+|**主函数**|**说明**|**二级函数**|**三级函数**|
+|-|-|-|-|
+|test_assumptions|正态性与方差齐性检验|perform_shapiro_by_group  perform_variances_homogeneity_test||
+|auto_stat_test|自动全局检验和事后检验|perform_anova_test  perform_kw_test  perfrom_stat_for_two_group|build_aov_formula  preform_avo_post_hoc  perform_pairwise_wilcoxon  rev_dunn_comparision|
+|stat_res_collect  stat_res_collect_two_group|数据整理||p_to_stars|
+
 
 ## 函数使用
 
@@ -383,11 +385,11 @@ plot_para <- get_plot_para(test_data, "value", stat_summary)
 plot_basic <- plot_bar_basic(test_data, x = "group", y = "value", ylab = "plot for value")
 ```
 
-![](https://secure2.wostatic.cn/static/2KHiEfC1K16XogyYCeDj9o/image.png?auth_key=1740405837-uQaEiEWH4KcTr1oKYjQUwE-0-833021b2753e6ff91244a3da3b62e31f)
+![](https://secure2.wostatic.cn/static/2KHiEfC1K16XogyYCeDj9o/image.png?auth_key=1741054911-ofQPWHipGUTBzdVeWAuA7n-0-60af580cac5385c1cc07c427ea6facc2)
 
 
 
-1. 根据参数进一步标记显著性
+1. 根据参数进一步标记显著性，仅作参考，你也可以适当的手动调整
 
 ```R
 plot_stat <- plot_basic +
@@ -407,7 +409,7 @@ plot_stat <- plot_basic +
 plot_stat
 ```
 
-![](https://secure2.wostatic.cn/static/u2sQzGCm5R4TbZxTVcGZKy/image.png?auth_key=1740405837-nuYsxgU6ub8ZLZRPMKaaE8-0-efd2e64c495c814f6d202fdc4bb0c6e6)
+![](https://secure2.wostatic.cn/static/u2sQzGCm5R4TbZxTVcGZKy/image.png?auth_key=1741054911-v4CPhufc1xnkn6dyfjoGD5-0-fcf3afc4b362e9780af9d3e024ec7ab9)
 
 
 
@@ -435,4 +437,102 @@ filter_stat_plot <- filter_basic +
 filter_stat_plot
 ```
 
-![](https://secure2.wostatic.cn/static/sfyKPD4LvYWQsoaAVGwsvg/image.png?auth_key=1740405837-gkc7gSAFbcWZMbSUEAapH8-0-31da21f634cf6b6c712e92a28cfc1de7)
+![](https://secure2.wostatic.cn/static/sfyKPD4LvYWQsoaAVGwsvg/image.png?auth_key=1741054911-qoCMdvncbpW1Tcm9jZSMVZ-0-3c6f1a28b95e9f82f97eb33caa47f2de)
+
+
+
+#### 10. 场景应用：基于多分组bulk转录组对基因进行表达量统计分析
+
+现在有一个多分组的bulk转录组数据，以及对应的meta信息。看看如何应用上述函数，便捷地实现统计。
+
+1. 首先查看一下数据
+
+```R
+# 这是一个经过DESeq2标准化后地矩阵
+exprSet_vst[1:4,1:4]
+#             W81      W83      W84      W80
+# Lyz2   18.57773 18.81743 18.98225 18.92183
+# Mt-co1 18.29783 18.89893 18.64288 18.55819
+# Sftpc  17.59295 18.24031 18.13995 18.04844
+# Mt-co3 16.58128 17.23893 17.41379 17.52487
+
+# 对应地meta信息
+head(datTraits)
+#     sample group sample2     RVSP    Fulton     RVID  PAT.PET    TAPSE        CO group2
+# W81    W81   CON  Cont_2  32.4500 0.2647000 1.678753 0.450777 2.389750 114.04988    CON
+# W83    W83   CON  Cont_3  29.3237 0.2593000 1.530280 0.305483 2.518139  92.83599    CON
+# W84    W84   CON  Cont_4  31.9598 0.2881500 1.357813 0.345269 2.241625  68.61000    CON
+# W80    W80   CON  Cont_1  30.8033 0.2437100 1.589875 0.287154 2.103375  73.24000    CON
+# A84    A84  SuHx  SuHx_6 106.6120 0.6791720 2.567500 0.132184 2.537875  44.53881   SuHx
+# A96    A96  SuHx  SuHx_1 119.5660 0.8120392 2.853875 0.183333 2.024375  76.80200   SuHx 
+
+
+```
+2. 对数据进行整理，并提取拟统计的目标基因
+
+```R
+# 添加干预因素的信息
+datTraits$suhx <- ifelse(datTraits$group == "CON", "con", "suhx")
+datTraits$inulin <- ifelse(datTraits$group %in% c("CON", "SuHx"), "con", "inulin")
+datTraits$gw <- ifelse(datTraits$group == "SuHx-IN+GW", "gw", "con")
+
+# 提取基因信息表达量信息
+datExpr2 <- t(exprSet_vst)
+gene_to_use = c("Fanci", "Fancd2", "H2ax", "Fancl")
+gene_to_use = gene_to_use[gene_to_use %in% colnames(datExpr2)]
+
+# 合并，只保留有用信息
+data <- cbind(datTraits, datExpr2[,gene_to_use]) %>% 
+  select(all_of(c("sample", "group", "RVSP", "Fulton", "RVID", "PAT.PET", 
+                  "TAPSE", "CO", "inulin", "suhx", "gw", "Fanci", "Fancd2", 
+                  "H2ax", "Fancl")))
+
+head(data)
+#     sample group     RVSP    Fulton     RVID  PAT.PET    TAPSE        CO inulin suhx  gw    Fanci   Fancd2     H2ax    Fancl
+# W81    W81   CON  32.4500 0.2647000 1.678753 0.450777 2.389750 114.04988    con  con con 6.479441 6.544456 8.813432 7.686432
+# W83    W83   CON  29.3237 0.2593000 1.530280 0.305483 2.518139  92.83599    con  con con 6.713148 6.379477 8.215798 7.830406
+# W84    W84   CON  31.9598 0.2881500 1.357813 0.345269 2.241625  68.61000    con  con con 6.782347 6.746125 8.837235 7.967137
+# W80    W80   CON  30.8033 0.2437100 1.589875 0.287154 2.103375  73.24000    con  con con 6.610660 6.390644 8.596658 7.927415
+# A84    A84  SuHx 106.6120 0.6791720 2.567500 0.132184 2.537875  44.53881    con suhx con 6.902632 6.851762 8.928339 7.597125
+# A96    A96  SuHx 119.5660 0.8120392 2.853875 0.183333 2.024375  76.80200    con suhx con 6.621814 6.605791 8.838876 7.687908
+
+```
+3. 接下来我们写一个临时函数，把三个函数都封装进去
+
+```R
+# 批量进行统计学分析
+stat_fc <- function(data, gene){
+  nor <- test_assumptions(data, gene, "group")
+  stat <- auto_stat_test(data, nor, gene, "group", factors = c("suhx", "inulin", "gw"))
+  stat_summary <- stat_res_collect(data, nor, stat, glue::glue("Fig6_{gene}"))
+  
+  return(stat_summary)
+}
+```
+4. 执行
+
+```R
+stats_res_list <- lapply(gene_to_use, function(i) stat_fc(data = data, gene = i))
+names(stats_res_list) <- gene_to_use
+```
+
+![](https://secure2.wostatic.cn/static/jHokeJSErbF5GgqJkHU4oe/image.png?auth_key=1741054911-2iP2JTgBjRAfB1bwQ7fo6q-0-6f3e0aa32cc96db29e41829f5a165094)
+
+
+
+最终获取的结果，就是一个基因对应一个list，结构如前所述。list第一个结构是纳入分析的数据，即这里的`data`；第二个结构是统计的汇总数据框，如下：
+
+![](https://secure2.wostatic.cn/static/9rVant8fdAAKnVLfZdToM2/image.png?auth_key=1741054911-7NzJgdWuGoQJophJUJKnum-0-9eeabee0e4b77ea66e41fcaa8d60cd45)
+
+
+
+最后只需要循环保存就行
+
+```R
+for (g in gene_to_use) {
+  res_use <- stats_res_list[[g]]
+  openxlsx::write.xlsx(res_use, file = glue::glue("results/{g}_stat_res.xlsx"))
+}
+```
+
+
