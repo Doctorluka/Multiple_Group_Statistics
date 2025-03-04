@@ -385,7 +385,7 @@ plot_para <- get_plot_para(test_data, "value", stat_summary)
 plot_basic <- plot_bar_basic(test_data, x = "group", y = "value", ylab = "plot for value")
 ```
 
-![](https://secure2.wostatic.cn/static/2KHiEfC1K16XogyYCeDj9o/image.png?auth_key=1741054911-ofQPWHipGUTBzdVeWAuA7n-0-60af580cac5385c1cc07c427ea6facc2)
+![basic_bar_plot](https://github.com/Doctorluka/Multiple_Group_Statistics/blob/main/stat_plots/basic_bar_plot.png)
 
 
 
@@ -409,7 +409,7 @@ plot_stat <- plot_basic +
 plot_stat
 ```
 
-![](https://secure2.wostatic.cn/static/u2sQzGCm5R4TbZxTVcGZKy/image.png?auth_key=1741054911-v4CPhufc1xnkn6dyfjoGD5-0-fcf3afc4b362e9780af9d3e024ec7ab9)
+![add_stat_results](https://github.com/Doctorluka/Multiple_Group_Statistics/blob/main/stat_plots/stat_bar_plot.png)
 
 
 
@@ -437,7 +437,7 @@ filter_stat_plot <- filter_basic +
 filter_stat_plot
 ```
 
-![](https://secure2.wostatic.cn/static/sfyKPD4LvYWQsoaAVGwsvg/image.png?auth_key=1741054911-qoCMdvncbpW1Tcm9jZSMVZ-0-3c6f1a28b95e9f82f97eb33caa47f2de)
+![two_groups](https://github.com/Doctorluka/Multiple_Group_Statistics/blob/main/stat_plots/two_group.png)
 
 
 
