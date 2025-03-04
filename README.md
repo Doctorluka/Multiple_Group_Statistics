@@ -516,13 +516,13 @@ stats_res_list <- lapply(gene_to_use, function(i) stat_fc(data = data, gene = i)
 names(stats_res_list) <- gene_to_use
 ```
 
-![](https://secure2.wostatic.cn/static/jHokeJSErbF5GgqJkHU4oe/image.png?auth_key=1741054911-2iP2JTgBjRAfB1bwQ7fo6q-0-6f3e0aa32cc96db29e41829f5a165094)
+![](https://github.com/Doctorluka/Multiple_Group_Statistics/blob/main/stat_plots/stat1.png)
 
 
 
 最终获取的结果，就是一个基因对应一个list，结构如前所述。list第一个结构是纳入分析的数据，即这里的`data`；第二个结构是统计的汇总数据框，如下：
 
-![](https://secure2.wostatic.cn/static/9rVant8fdAAKnVLfZdToM2/image.png?auth_key=1741054911-7NzJgdWuGoQJophJUJKnum-0-9eeabee0e4b77ea66e41fcaa8d60cd45)
+![](https://github.com/Doctorluka/Multiple_Group_Statistics/blob/main/stat_plots/stat2.png)
 
 
 
