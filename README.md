@@ -1,7 +1,7 @@
 # A Structured Workflow for Statistical Analysis of Multiple Groups in R
 
-> 中文教程见：https://github.com/Doctorluka/Multiple_Group_Statistics/blob/main/Tutuorial-CN.md
-> Version wrote by Python: https://github.com/huazhuofeng/statistics_in_python
+> 中文教程见：https://github.com/Doctorluka/Multiple_Group_Statistics/blob/main/Tutuorial-CN.md  
+> Version wrote by Python: https://github.com/huazhuofeng/statistics_in_python  
 
 ## Preface
 
