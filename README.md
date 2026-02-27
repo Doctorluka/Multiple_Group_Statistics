@@ -1,5 +1,7 @@
 # A Structured Workflow for Statistical Analysis of Multiple Groups in R
 
+> 中文教程见：https://github.com/Doctorluka/Multiple_Group_Statistics/blob/main/Tutuorial-CN.md
+
 ## Preface
 
 While R packages such as `ggpubr` offer convenient functions for statistical visualization, practical research applications often present complexities that extend beyond their capabilities. These packages typically accommodate only simple two-group comparisons or global tests. Although they can generate preliminary results efficiently, they fall short in helping users assess the appropriateness of selected statistical methods or in producing results that meet publication standards.
